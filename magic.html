@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>魔法學園 · 魔藥煉成所 | 教師數據收集版</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Serif TC', 'Cinzel Decorative', serif;
+      background: #0a0718;
+      background-image: radial-gradient(ellipse at 20% 30%, rgba(80, 40, 140, 0.7) 0%, rgba(20, 10, 45, 0.95) 70%),
+                        radial-gradient(ellipse at 85% 70%, rgba(140, 70, 200, 0.35) 0%, transparent 60%),
+                        repeating-linear-gradient(45deg, rgba(100, 60, 180, 0.08) 0px, rgba(100, 60, 180, 0.08) 2px, transparent 2px, transparent 8px);
+      color: #f0e6d2;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .starfield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+    .star { position: absolute; background: rgba(255, 240, 200, 0.8); border-radius: 50%; box-shadow: 0 0 12px 3px rgba(210, 180, 255, 0.7); animation: starTwinkle 4s infinite alternate; }
+    @keyframes starTwinkle { 0% { opacity: 0.2; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+
+    .floating-candle { position: fixed; pointer-events: none; z-index: 2; filter: drop-shadow(0 0 20px rgba(255, 160, 60, 0.7)); animation: floatCandle 6s ease-in-out infinite; }
+    @keyframes floatCandle { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+    .candle-glow { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,180,70,0.6) 0%, rgba(255,120,30,0) 80%); border-radius: 50%; pointer-events: none; }
+
+    .flask-container { position: relative; width: 360px; height: 420px; margin-top: 5px; }
+    .flask-neck { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 50px; height: 110px; background: rgba(180,160,210,0.3); border: 3px solid rgba(160,140,200,0.6); border-bottom: none; border-radius: 20px 20px 0 0; z-index: 2; backdrop-filter: blur(2px);}
+    .flask-rim { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 64px; height: 14px; background: rgba(210,195,230,0.55); border: 3px solid rgba(180,160,210,0.6); border-radius: 50%; z-index: 3; box-shadow: 0 0 12px rgba(200,160,255,0.5);}
+    .flask-body { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 360px; height: 320px; background: radial-gradient(ellipse at 40% 35%, rgba(60,20,110,0.4), rgba(30,10,70,0.7)); border: 4px solid rgba(170,150,210,0.65); border-radius: 50%; box-shadow: 0 0 65px rgba(140,80,210,0.55), inset 0 0 30px rgba(0,0,0,0.3); overflow: hidden; z-index: 1; }
+    .flask-liquid { position: absolute; bottom: 8%; left: 10%; width: 80%; height: 70%; background: radial-gradient(ellipse at 50% 40%, #8a4fcf, #3c1b70); border-radius: 50%; z-index: 0; animation: bubbleBoil 0.8s ease-in-out infinite alternate, liquidWobble 2.5s ease-in-out infinite; box-shadow: inset 0 0 45px rgba(210, 170, 255, 0.6), 0 0 25px rgba(160, 100, 230, 0.4); transform-origin: center; }
+    .flask-liquid::before { content: ''; position: absolute; bottom: 20%; left: 15%; width: 18px; height: 18px; background: rgba(255,240,210,0.7); border-radius: 50%; animation: bubbleRise 1.2s infinite ease-out; box-shadow: 0 0 8px #ffd966; }
+    .flask-liquid::after { content: ''; position: absolute; bottom: 40%; right: 20%; width: 12px; height: 12px; background: rgba(255,235,190,0.8); border-radius: 50%; animation: bubbleRise 1.8s infinite ease-out 0.4s; box-shadow: 0 0 8px #ffb347; }
+    @keyframes bubbleRise { 0% { transform: translateY(0) scale(0.6); opacity: 0.9; } 100% { transform: translateY(-55px) scale(1.3); opacity: 0; } }
+    @keyframes liquidWobble { 0% { transform: rotate(0deg) translateX(0); } 25% { transform: rotate(1deg) translateX(3px); } 75% { transform: rotate(-1deg) translateX(-3px); } 100% { transform: rotate(0deg) translateX(0); } }
+    @keyframes bubbleBoil { 0% { border-radius: 45% 55% 52% 48% / 48% 51% 49% 52%; } 100% { border-radius: 55% 45% 48% 52% / 52% 49% 51% 48%; } }
+    .pizza-base { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 340px; height: 300px; z-index: 5; pointer-events: none; }
+
+    .bg-library { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.4; }
+    .bookshelf-left, .bookshelf-right { position: absolute; top: 0; width: 120px; height: 100%; background: repeating-linear-gradient(0deg, #2c1a2c 0px, #2c1a2c 4px, #3e2a3e 4px, #3e2a3e 8px, #2c1a2c 8px, #2c1a2c 32px, #1e0e2a 32px, #1e0e2a 34px, #2c1a2c 34px); opacity: 0.55; }
+    .bookshelf-left { left: 0; } .bookshelf-right { right: 0; }
+
+    .game-wrapper { position: relative; z-index: 15; width: 100%; max-width: 1100px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .header { width: 100%; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, rgba(30,15,55,0.85) 0%, rgba(20,8,40,0.95) 100%); padding: 16px 28px; border-radius: 8px; border: 3px solid #6a4a9a; gap: 20px; backdrop-filter: blur(2px);}
+    .customer-area { display: flex; align-items: center; gap: 18px; flex: 1; }
+    .avatar { font-size: 58px; filter: drop-shadow(0 0 14px rgba(180,140,220,0.7)); animation: gentleFloat 3s ease-in-out infinite; }
+    @keyframes gentleFloat { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-8px); } }
+    .bubble { background: rgba(30,15,50,0.85); padding: 12px 22px; border-radius: 8px; border: 2px solid #7b5cac; font-size: 20px; font-weight: 700; color: #f0e6d2; box-shadow: 0 0 20px rgba(100,50,180,0.35); position: relative; }
+    .bubble::before { content: ''; position: absolute; left: -16px; top: 50%; transform: translateY(-50%); border-width: 10px 16px 10px 0; border-style: solid; border-color: transparent #7b5cac transparent transparent; }
+    .target-val { color: #f0bcff; font-size: 38px; letter-spacing: 2px; text-shadow: 0 0 22px #b77eff; }
+    .patience-container { width: 100%; height: 16px; background: #1a1025; border: 2px solid #5b3d80; border-radius: 8px; overflow: hidden; position: relative; }
+    .patience-bar { height: 100%; background: linear-gradient(90deg, #9b4dff, #cc77ff); transition: width 0.1s linear; }
+    .patience-text { position: absolute; top:0; left:0; right:0; text-align: center; font-size: 11px; font-weight: bold; line-height: 16px; color: #e8dcc8; }
+    .info-panel { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+    .level-board { font-size: 18px; background: rgba(20,10,35,0.8); color: #f5d742; padding: 6px 18px; border-radius: 6px; border: 2px solid #7b5cac; }
+    .score-board { font-size: 24px; background: rgba(15,5,25,0.9); color: #f5d742; padding: 10px 22px; border-radius: 6px; border: 3px solid #8a6ac0; display: flex; align-items: baseline; gap: 8px; }
+    .rank-badge { font-size: 0.8em; background: rgba(90,50,130,0.7); padding: 2px 10px; border-radius: 20px; }
+
+    .main-container { display: flex; width: 100%; max-width: 1000px; gap: 35px; flex: 1; }
+    .left-panel { flex: 1.3; display: flex; flex-direction: column; align-items: center; gap: 12px; background: rgba(20,10,35,0.4); border: 2px dashed #7b5cac; border-radius: 28px; padding: 10px; position: relative; backdrop-filter: blur(3px);}
+    .hint-area { width: 100%; background: rgba(10,5,25,0.85); border-radius: 20px; border-left: 8px solid #f5bc70; padding: 14px 18px; backdrop-filter: blur(4px); color: #fff0db; margin-bottom: 8px; transition: 0.2s; }
+    .hint-title { font-weight: bold; color: #ffde9e; letter-spacing: 2px; margin-bottom: 10px; font-size: 20px; display: flex; align-items: center; gap: 8px; }
+    .hint-content { line-height: 1.7; font-size: 18px; white-space: pre-line; border-top: 1px dashed #aa88dd; padding-top: 8px; margin-top: 4px; }
+
+    .left-bottom-tool { width: 100%; margin-top: 12px; display: flex; justify-content: flex-start; padding-left: 12px; }
+    .reset-potion-btn { background: linear-gradient(135deg, #b5a9ff, #8ec5fc); border: none; color: #2d1f4a; font-size: 18px; font-weight: bold; padding: 8px 28px; border-radius: 60px; cursor: pointer; font-family: 'Cinzel Decorative', serif; box-shadow: 0 6px 14px rgba(0,0,0,0.3); transition: 0.1s; display: flex; align-items: center; gap: 10px; }
+    .reset-potion-btn:hover { transform: scale(1.02); background: linear-gradient(135deg, #c7bdff, #a4dcff); box-shadow: 0 8px 18px rgba(0,0,0,0.4); }
+
+    .right-panel { width: 370px; background: linear-gradient(180deg, rgba(30,15,50,0.9), rgba(25,10,45,0.97)); border: 3px solid #7b5cac; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; backdrop-filter: blur(2px);}
+    .tray-title { text-align: center; font-size: 24px; font-weight: 900; color: #ffecb3; background: rgba(30,15,55,0.8); padding: 10px; border: 2px solid #9b7acf; margin-bottom: 20px; border-radius: 18px; letter-spacing: 2px; font-family: 'Cinzel Decorative', serif; }
+    .tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 85px)); justify-content: center; gap: 20px 12px; align-items: start; min-height: 340px; margin-bottom: 15px; }
+    .ingredient-wrapper { width: 85px; height: auto; min-height: 100px; position: relative; margin-bottom: 8px; }
+    .ingredient { background: transparent; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: 100%; transition: transform 0.15s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); visibility: visible; opacity: 1; }
+    .ingredient.hidden-ingredient { visibility: hidden; pointer-events: none; opacity: 0; }
+    .ingredient:hover:not(.hidden-ingredient) { transform: scale(1.1); filter: brightness(1.2) drop-shadow(0 0 12px rgba(200,170,255,0.7)); }
+    .ingredient .emoji { font-size: 44px; }
+    .ingredient .val-label { background: rgba(25,12,45,0.95); color: #fae672; font-size: 20px; font-weight: bold; padding: 6px 10px; border: 2px solid #b494f0; border-radius: 24px; letter-spacing: 1px; margin-top: 4px; }
+    .on-pizza { position: absolute; z-index: 10; animation: splat 0.25s ease-out; cursor: pointer; pointer-events: auto; }
+    .on-pizza .emoji { font-size: 42px; }
+    .on-pizza .val-label { font-size: 15px; padding: 2px 6px; }
+    @keyframes splat { 0%{ transform: scale(2.4); opacity: 0; } 100%{ transform: scale(1); opacity: 1; } }
+    
+    .confirm-btn { background: linear-gradient(180deg, #8a4fd0, #5a2a9a); color: #fdf6e3; border: 3px solid #b28eff; padding: 14px; font-size: 23px; font-weight: 900; border-radius: 50px; cursor: pointer; box-shadow: 0 0 35px rgba(150,100,240,0.6); margin-top: 50px; font-family: 'Cinzel Decorative', serif; transition: 0.1s; }
+    .confirm-btn:hover { background: linear-gradient(180deg, #a162e6, #7b3bc2); transform: translateY(-2px); }
+
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px); }
+    .parchment-scroll { background: linear-gradient(180deg, #f5e6ca, #e8d5b5); border-radius: 6px; text-align: center; border: 3px solid #c4a67a; max-width: 700px; width: 90%; color: #3e2723; box-shadow: 0 0 70px rgba(255,215,150,0.6); padding: 35px 30px; }
+    .modal-title { font-size: 34px; font-weight: 900; font-family: 'Cinzel Decorative', serif; margin-bottom: 20px; }
+    .modal-subtitle { font-size: 18px; line-height: 1.5; white-space: nowrap; overflow-x: auto; text-align: center; }
+    @media (max-width: 800px) { .modal-subtitle { white-space: normal; } }
+    .password-input { font-size: 28px; padding: 10px 20px; text-align: center; border: 3px solid #7b4da0; background: #fff9ea; border-radius: 50px; width: 80%; margin: 20px auto; display: block; font-family: monospace; letter-spacing: 6px; }
+    .modal-btn { background: linear-gradient(180deg, #5d3a1a, #3e2723); color: #e0c76e; border: 3px solid #8d6e4c; padding: 12px 28px; font-size: 20px; border-radius: 40px; cursor: pointer; font-weight: 900; margin: 8px; }
+    .error-msg { color: #b71c1c; font-weight: bold; margin-top: 12px; background: rgba(0,0,0,0.1); padding: 6px; border-radius: 30px; }
+    .button-group { display: flex; justify-content: center; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="bg-library"><div class="bookshelf-left"></div><div class="bookshelf-right"></div></div>
+  <div class="starfield" id="starfield"></div>
+  <div id="floatingCandles"></div>
+
+  <div id="start-screen" class="modal-overlay" style="display: flex;">
+    <div class="parchment-scroll">
+      <div class="modal-title" style="color:#4a148c;">🔮 魔藥煉金術師 🔮</div>
+      <div class="modal-subtitle" style="font-size:18px; line-height:1.4; margin-top:20px;">
+        ✦ 第一階｜基礎轉換 (5題) 50秒/題，10秒內+5分<br>
+        ✦ 第二階｜進階藥理 (10題) 60秒/題，10秒內+5分<br>
+        ✦ 第三階｜大師祕藥 (15題) 90秒/題，25秒內+5分<br>
+        🧪 材料架固定位置，點選等值配方放入魔藥瓶。<br>
+        ⚗️ 未放材料調配 -30分，配方錯誤 -20分。<br>
+        📜 通關後須向導師領取密碼，方可晉級。<br>
+        🔁 若成績未達標，可點「重新挑戰」重做當前關卡（保留之前關卡分數）。<br>
+        📊 教師可透過 Google 試算表即時收集全班作答歷程。
+      </div>
+      <button class="modal-btn" onclick="initFirstGame()" style="font-size:24px;">✨ 開始煉藥</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="parchment-scroll">
+      <div class="modal-title" id="modal-msg"></div>
+      <div class="modal-subtitle" id="modal-desc"></div>
+      <div id="bonus-desc" style="color:#6a1b9a; font-size:20px;"></div>
+      <div id="correct-ans-box" style="background:rgba(201,168,76,0.25); border:2px dashed #c9a84c; padding:14px; font-size:20px; margin-bottom:20px; display:none;"></div>
+      <button class="modal-btn" id="next-btn" onclick="nextQuestion()">繼續</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="passwordModal">
+    <div class="parchment-scroll">
+      <div class="modal-title" id="passwordModalTitle">🔐 導師密碼鎖</div>
+      <div id="passwordDesc" style="font-size:18px; margin:10px 0;">請向導師索取通關密語</div>
+      <input type="password" id="levelPassword" class="password-input" placeholder="輸入密碼" autocomplete="off">
+      <div id="passwordError" class="error-msg" style="display:none;">❌ 密碼錯誤，無法解鎖</div>
+      <div class="button-group">
+        <button class="modal-btn" id="retryLevelBtn">🔁 重新挑戰此關</button>
+        <button class="modal-btn" id="submitPasswordBtn">🔓 輸入密碼晉級</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-wrapper">
+    <div class="header">
+      <div class="customer-area"><div class="avatar" id="customer-face">🧙‍♂️</div>
+        <div class="bubble-container"><div class="bubble">請調配濃度 <span class="target-val" id="target-display">80%</span> 的魔藥</div>
+        <div class="patience-container"><div class="patience-bar" id="patience-bar"></div><div class="patience-text" id="patience-text"></div></div></div>
+      </div>
+      <div class="info-panel"><div class="level-board" id="level-display">第 1/5 題</div>
+      <div class="score-board"><span>魔力值</span><span id="score">0</span><span class="rank-badge" id="rank-title">麻瓜</span></div></div>
+    </div>
+    <div class="main-container">
+      <div class="left-panel">
+        <div class="hint-area" id="hintBox" style="display: none;">
+          <div class="hint-title">📘 魔藥筆記</div>
+          <div class="hint-content" id="hintText"></div>
+        </div>
+        <div class="flask-container">
+          <div class="flask-rim"></div><div class="flask-neck"></div>
+          <div class="flask-body"><div class="flask-liquid"></div></div>
+          <div class="pizza-base" id="pizza-board"></div>
+        </div>
+        <div class="left-bottom-tool">
+          <button class="reset-potion-btn" id="resetPotionBtn">🧹 倒掉重練</button>
+        </div>
+      </div>
+      <div class="right-panel"><div class="tray-title">🧪 魔法材料架</div><div class="tray" id="tray"></div><button class="confirm-btn" onclick="checkOrder(false)">⚗️ 完成魔藥調配</button></div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ================= Google Sheets 設定 =================
+      const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw2kVMPIcd0AH-anfF21aBVfzAjqoY0zsVPxjcnFHv2UZULMaF0OGDNppVRPwnsUTNO/exec";
+      
+      // 獲取或建立學生座號 (存在 localStorage)
+      function getStudentId() {
+        let id = localStorage.getItem("magic_student_id");
+        if (!id) {
+          id = prompt("請輸入你的班別學號 (例如6E01)", "學生01");
+          if (id && id.trim() !== "") {
+            localStorage.setItem("magic_student_id", id.trim());
+          } else {
+            id = "未知學生";
+            localStorage.setItem("magic_student_id", id);
+          }
+        }
+        return id;
+      }
+      
+      // 傳送作答記錄到 Google Sheets
+      function sendLogToGoogle(record) {
+        if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("你的部署網址")) {
+          console.log("未設定 Google Sheets 網址，跳過傳送", record);
+          return;
+        }
+        fetch(GOOGLE_SHEET_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(record)
+        }).catch(err => console.warn("傳送至 Google Sheets 失敗（可能離線）:", err));
+      }
+      
+      // 記錄每一題的詳細歷程
+      function logCurrentAttempt(isCorrect, scoreChange, timeSpent, hintWasShown) {
+        const studentId = getStudentId();
+        const targetType = getTargetType(currentQuestion.target);
+        const record = {
+          studentId: studentId,
+          level: currentLevel,
+          questionNum: questionCount,
+          questionType: targetType,
+          target: currentQuestion.target,
+          chosen: selectedValues.join(", "),
+          correctAnswers: currentQuestion.correct.join(", "),
+          correct: isCorrect,
+          timeSpent: timeSpent.toFixed(1),
+          hintUsed: hintWasShown ? "是" : "否",
+          scoreChange: scoreChange
+        };
+        sendLogToGoogle(record);
+      }
+      
+      // ================= 第一關題庫 (完整 50 筆) =================
+      const level1Items = [
+        { target:"0.5", correct:["50%","1/2"], traps:["5%","0.05","1/5","0.2"] },
+        { target:"50%", correct:["0.5","1/2"], traps:["5%","0.05","1/5","5"] },
+        { target:"1/2", correct:["0.5","50%"], traps:["0.2","20%","1/4","0.25"] },
+        { target:"0.25", correct:["25%","1/4"], traps:["2.5%","0.025","1/5","0.2"] },
+        { target:"25%", correct:["0.25","1/4"], traps:["2.5","0.025","1/5"] },
+        { target:"1/4", correct:["0.25","25%"], traps:["0.2","20%","1/2"] },
+        { target:"0.75", correct:["75%","3/4"], traps:["7.5%","0.075","1/3","33%"] },
+        { target:"75%", correct:["0.75","3/4"], traps:["7.5","0.075","3/5"] },
+        { target:"3/4", correct:["0.75","75%"], traps:["0.7","70%","2/3"] },
+        { target:"0.2", correct:["20%","1/5"], traps:["2%","0.02","1/2","0.5"] },
+        { target:"20%", correct:["0.2","1/5"], traps:["2%","0.02","1/4"] },
+        { target:"1/5", correct:["0.2","20%"], traps:["0.4","40%","1/10"] },
+        { target:"0.4", correct:["40%","2/5"], traps:["4%","0.04","1/4","0.25"] },
+        { target:"40%", correct:["0.4","2/5"], traps:["4%","0.04","1/5","20%"] },
+        { target:"2/5", correct:["0.4","40%"], traps:["0.2","20%","1/2"] },
+        { target:"0.6", correct:["60%","3/5"], traps:["6%","0.06","1/6","16%"] },
+        { target:"60%", correct:["0.6","3/5"], traps:["6%","0.06","3/10","30%"] },
+        { target:"3/5", correct:["0.6","60%"], traps:["0.3","30%","1/3"] },
+        { target:"0.8", correct:["80%","4/5"], traps:["8%","0.08","1/8","12.5%"] },
+        { target:"80%", correct:["0.8","4/5"], traps:["8%","0.08","4/10","40%"] },
+        { target:"4/5", correct:["0.8","80%"], traps:["0.4","40%","1/2"] },
+        { target:"0.1", correct:["10%","1/10"], traps:["1%","0.01","1/5","0.2"] },
+        { target:"10%", correct:["0.1","1/10"], traps:["1%","0.01","1/5","20%"] },
+        { target:"1/10", correct:["0.1","10%"], traps:["0.2","20%","1/2"] },
+        { target:"0.3", correct:["30%","3/10"], traps:["3%","0.03","1/3","33%"] },
+        { target:"30%", correct:["0.3","3/10"], traps:["3%","0.03","1/3"] },
+        { target:"3/10", correct:["0.3","30%"], traps:["0.33","33%","1/4"] },
+        { target:"0.7", correct:["70%","7/10"], traps:["7%","0.07","1/7","14%"] },
+        { target:"70%", correct:["0.7","7/10"], traps:["7%","0.07","7/100"] },
+        { target:"7/10", correct:["0.7","70%"], traps:["0.6","60%","4/5"] },
+        { target:"0.9", correct:["90%","9/10"], traps:["9%","0.09","1/9","11%"] },
+        { target:"90%", correct:["0.9","9/10"], traps:["9%","0.09","9/100"] },
+        { target:"9/10", correct:["0.9","90%"], traps:["0.8","80%","7/8"] },
+        { target:"0.15", correct:["15%","3/20"], traps:["1.5%","0.015","1/6","16%"] },
+        { target:"15%", correct:["0.15","3/20"], traps:["1.5","0.015","3/10"] },
+        { target:"0.35", correct:["35%","7/20"], traps:["3.5%","0.035","1/3","33%"] },
+        { target:"35%", correct:["0.35","7/20"], traps:["3.5","0.035","7/10"] },
+        { target:"0.45", correct:["45%","9/20"], traps:["4.5%","0.045","1/2","0.5"] },
+        { target:"45%", correct:["0.45","9/20"], traps:["4.5","0.045","9/10"] },
+        { target:"0.55", correct:["55%","11/20"], traps:["5.5%","0.055","1/2","0.5"] },
+        { target:"55%", correct:["0.55","11/20"], traps:["5.5","0.055","11/100"] },
+        { target:"0.65", correct:["65%","13/20"], traps:["6.5%","0.065","3/5","0.6"] },
+        { target:"65%", correct:["0.65","13/20"], traps:["6.5","0.065","13/100"] },
+        { target:"0.85", correct:["85%","17/20"], traps:["8.5%","0.085","4/5","0.8"] },
+        { target:"85%", correct:["0.85","17/20"], traps:["8.5","0.085","17/100"] },
+        { target:"0.95", correct:["95%","19/20"], traps:["9.5%","0.095","9/10","0.9"] },
+        { target:"95%", correct:["0.95","19/20"], traps:["9.5","0.095","19/100"] },
+        { target:"5%", correct:["0.05","1/20"], traps:["0.5","50%","1/5","0.2"] },
+        { target:"0.05", correct:["5%","1/20"], traps:["0.5","50%","1/10"] }
+      ];
+      const level1Bank = [...level1Items];
+
+      // ================= 第二關題庫 =================
+      const level2Bank = [
+        { target: "26/200", correct: ["13%", "0.13"], traps: ["26%", "0.26", "2.6", "1.3", "130%"] },
+        { target: "126/600", correct: ["21%", "0.21"], traps: ["12.6%", "0.126", "2.1", "210%", "1.26"] },
+        { target: "0.3%", correct: ["0.003", "3/1000"], traps: ["0.3", "3/10", "3%", "0.03", "3/100"] },
+        { target: "5/6%", correct: ["1/120", "約 0.0083"], traps: ["5/6", "0.833", "83.3%", "1.2", "120%"] },
+        { target: "23%", correct: ["0.23", "23/100"], traps: ["2.3", "1/2", "2.3%", "23/10", "0.023"] },
+        { target: "75%", correct: ["0.75", "3/4"], traps: ["7.5", "1/3", "7.5%", "7.50", "3/5"] },
+        { target: "21%", correct: ["0.21", "21/100"], traps: ["0.021", "21%", "21/10", "2.1", "1/21"] },
+        { target: "1/20", correct: ["0.05", "5%"], traps: ["0.5", "5.0", "1/5", "50/10", "5/100"] },
+        { target: "95%", correct: ["0.95", "19/20"], traps: ["9.5", "95/10", "9.5%", "0.095", "9/5"] },
+        { target: "0.59", correct: ["59%", "59/100"], traps: ["0.059", "59%", "59/10", "5.9", "9/5"] },
+        { target: "10%", correct: ["0.1", "1/10"], traps: ["0.01", "1%", "1.0", "10/1000", "0.101"] },
+        { target: "88%", correct: ["0.88", "22/25"], traps: ["0.088", "88%", "1/88", "88/10", "88.0"] },
+        { target: "0.4", correct: ["40%", "2/5"], traps: ["0.04", "4%", "1/4", "40/10", "4.0"] },
+        { target: "100%", correct: ["1", "100/100"], traps: ["0.1", "10%", "100/10", "0.01", "1/100"] },
+        { target: "3/5", correct: ["0.6", "60%"], traps: ["0.06", "6%", "1/6", "6.0", "60/100"] },
+        { target: "30%", correct: ["0.3", "3/10"], traps: ["0.03", "3%", "1/3", "3.0", "30/1000"] },
+        { target: "0.7", correct: ["70%", "7/10"], traps: ["0.07", "7%", "1/7", "7.0", "70/1000"] },
+        { target: "90%", correct: ["0.9", "9/10"], traps: ["0.09", "9%", "1/9", "9.0", "90/1000"] },
+        { target: "15%", correct: ["0.15", "3/20"], traps: ["1.5", "1.5%", "15/10", "1/15", "0.015"] },
+        { target: "35%", correct: ["0.35", "7/20"], traps: ["3.5", "3.5%", "35/10", "1/35", "0.035"] },
+        { target: "45%", correct: ["0.45", "9/20"], traps: ["4.5", "4.5%", "45/10", "1/45", "0.045"] },
+        { target: "54%", correct: ["0.54", "27/50"], traps: ["5.4", "5.4%", "54/10", "1/54", "0.054"] },
+        { target: "65%", correct: ["0.65", "13/20"], traps: ["6.5", "6.5%", "65/10", "1/65", "0.065"] },
+        { target: "85%", correct: ["0.85", "17/20"], traps: ["8.5", "8.5%", "85/10", "1/85", "0.085"] },
+        { target: "2%", correct: ["0.02", "1/50"], traps: ["0.2", "20%", "2.0", "2/10", "2/1000"] },
+        { target: "4%", correct: ["0.04", "1/25"], traps: ["0.4", "40%", "4.0", "4/10", "4/1000"] },
+        { target: "3/50", correct: ["0.06", "6%"], traps: ["0.6", "60%", "6.0", "6/10", "6/1000"] },
+        { target: "8%", correct: ["0.08", "2/25"], traps: ["0.8", "80%", "8.0", "8/10", "8/1000"] },
+        { target: "3/25", correct: ["0.12", "12%"], traps: ["1.2", "1.2%", "12/10", "1.20", "0.012"] },
+        { target: "16%", correct: ["0.16", "4/25"], traps: ["1.6", "1.6%", "16/10", "1.60", "0.016"] },
+        { target: "9/50", correct: ["0.18", "18%"], traps: ["1.8", "1.8%", "18/10", "1.80", "0.018"] },
+        { target: "24%", correct: ["0.24", "6/25"], traps: ["2.4", "2.4%", "24/10", "2.40", "0.024"] },
+        { target: "28%", correct: ["0.28", "7/25"], traps: ["2.8", "2.8%", "28/10", "2.80", "0.028"] },
+        { target: "32%", correct: ["0.32", "8/25"], traps: ["3.2", "3.2%", "32/10", "3.20", "0.032"] },
+        { target: "0.36", correct: ["36%", "9/25"], traps: ["3.6", "3.6%", "36/10", "3.60", "0.036"] },
+        { target: "38%", correct: ["0.38", "19/50"], traps: ["3.8", "3.8%", "38/10", "3.80", "0.038"] },
+        { target: "0.42", correct: ["42%", "21/50"], traps: ["4.2", "4.2%", "42/10", "4.20", "0.042"] },
+        { target: "48%", correct: ["0.48", "12/25"], traps: ["4.8", "4.8%", "48/10", "4.80", "0.048"] },
+        { target: "52%", correct: ["0.52", "13/25"], traps: ["5.2", "5.2%", "52/10", "5.20", "0.052"] },
+        { target: "56%", correct: ["0.56", "14/25"], traps: ["5.6", "5.6%", "56/10", "5.60", "0.056"] },
+        { target: "62%", correct: ["0.62", "31/50"], traps: ["6.2", "6.2%", "62/10", "6.20", "0.062"] },
+        { target: "64%", correct: ["0.64", "16/25"], traps: ["6.4", "6.4%", "64/10", "6.40", "0.064"] },
+        { target: "0.68", correct: ["68%", "17/25"], traps: ["6.8", "6.8%", "68/10", "6.80", "0.068"] },
+        { target: "72%", correct: ["0.72", "18/25"], traps: ["7.2", "7.2%", "72/10", "7.20", "0.072"] },
+        { target: "76%", correct: ["0.76", "19/25"], traps: ["7.6", "7.6%", "76/10", "7.60", "0.076"] },
+        { target: "41/50", correct: ["0.82", "82%"], traps: ["8.2", "8.2%", "82/10", "8.20", "0.082"] },
+        { target: "84%", correct: ["0.84", "21/25"], traps: ["8.4", "8.4%", "84/10", "8.40", "0.084"] },
+        { target: "88%", correct: ["0.88", "22/25"], traps: ["8.8", "8.8%", "88/10", "8.80", "0.088"] },
+        { target: "0.92", correct: ["92%", "23/25"], traps: ["9.2", "9.2%", "92/10", "9.20", "0.092"] },
+        { target: "0.96", correct: ["96%", "24/25"], traps: ["9.6", "9.6%", "96/10", "9.60", "0.096"] },
+        { target: "98%", correct: ["0.98", "49/50"], traps: ["9.8", "9.8%", "98/10", "9.80", "0.098"] },
+        { target: "1/100", correct: ["0.01", "1%"], traps: ["0.1", "10%", "1.0", "1/10", "0.001"] },
+        { target: "0.5%", correct: ["0.005", "1/200"], traps: ["0.5", "5%", "50%", "1/50", "0.05"] },
+        { target: "0.1%", correct: ["0.001", "1/1000"], traps: ["0.1", "1%", "10%", "1/100", "0.01"] },
+        { target: "1/8", correct: ["0.125", "12.5%"], traps: ["1.8", "1.25", "18%", "0.18", "125%"] },
+        { target: "3/8", correct: ["0.375", "37.5%"], traps: ["3.8", "0.38", "38%", "3.75", "0.0375"] },
+        { target: "5/8", correct: ["0.625", "62.5%"], traps: ["0.58", "5.8", "6.25", "625%", "58%"] },
+        { target: "7/8", correct: ["0.875", "87.5%"], traps: ["0.78", "7.8", "8.75", "875%", "78%"] },
+        { target: "1/3", correct: ["約 0.333", "約 33.3%"], traps: ["0.3", "30%", "1.3", "3.33", "3%"] },
+        { target: "2/3", correct: ["約 0.667", "約 66.7%"], traps: ["0.6", "60%", "2.3", "6.67", "6%"] },
+        { target: "1/5", correct: ["20%", "0.2"], traps: ["0.02", "2%", "50%", "0.5", "5"] },
+        { target: "2/5", correct: ["40%", "0.4"], traps: ["4%", "0.04", "25%", "2.5", "0.25"] },
+        { target: "3/5", correct: ["60%", "0.6"], traps: ["6%", "0.06", "35%", "0.35", "1.5"] },
+        { target: "4/5", correct: ["80%", "0.8"], traps: ["8%", "0.08", "45%", "0.45", "1.25"] },
+        { target: "1/4", correct: ["25%", "0.25"], traps: ["2.5%", "0.025", "14%", "0.14", "40%"] },
+        { target: "3/4", correct: ["75%", "0.75"], traps: ["7.5%", "0.075", "34%", "0.34", "43%"] },
+        { target: "1/2", correct: ["50%", "0.5"], traps: ["5%", "0.05", "12%", "0.12", "20%"] },
+        { target: "3/10", correct: ["30%", "0.3"], traps: ["3%", "0.03", "13%", "0.13", "1.3"] },
+        { target: "7/10", correct: ["70%", "0.7"], traps: ["7%", "0.07", "17%", "0.17", "1.7"] },
+        { target: "9/10", correct: ["90%", "0.9"], traps: ["9%", "0.09", "19%", "0.19", "1.9"] },
+        { target: "1/10", correct: ["10%", "0.1"], traps: ["1%", "0.01", "11%", "0.11", "1.1"] },
+        { target: "1/25", correct: ["4%", "0.04"], traps: ["40%", "0.4", "25%", "0.25", "1.4"] },
+        { target: "2/25", correct: ["8%", "0.08"], traps: ["80%", "0.8", "2.8%", "0.28", "25%"] },
+        { target: "4/25", correct: ["16%", "0.16"], traps: ["1.6%", "0.016", "64%", "0.64", "4.25"] },
+        { target: "7/20", correct: ["35%", "0.35"], traps: ["3.5%", "0.035", "72%", "0.72", "20%"] },
+        { target: "9/20", correct: ["45%", "0.45"], traps: ["4.5%", "0.045", "29%", "0.29", "2.25"] },
+        { target: "11/20", correct: ["55%", "0.55"], traps: ["5.5%", "0.055", "11%", "0.11", "2.2"] },
+        { target: "13/20", correct: ["65%", "0.65"], traps: ["6.5%", "0.065", "13%", "0.13", "2.6"] },
+        { target: "17/20", correct: ["85%", "0.85"], traps: ["8.5%", "0.085", "17%", "0.17", "3.4"] },
+        { target: "19/20", correct: ["95%", "0.95"], traps: ["9.5%", "0.095", "19%", "0.19", "3.8"] }
+      ];
+
+      // ================= 第三關題庫 =================
+      const level3Bank = [
+        { target: "173.6%", correct: ["1.736", "217/125"], traps: ["17.36", "173 3/5", "0.1736", "1.73", "1736%"] },
+        { target: "39%", correct: ["0.39", "39/100"], traps: ["3.9", "39/10", "0.039", "3.9%", "390%"] },
+        { target: "3", correct: ["300%", "3.0"], traps: ["3%", "0.3", "30%", "1/3", "0.03"] },
+        { target: "0.175", correct: ["17.5%", "7/40"], traps: ["1.75%", "1.75", "175%", "1/75", "0.0175"] },
+        { target: "5/7", correct: ["約 71.4%", "10/14"], traps: ["0.57", "5.7%", "7/5", "714%", "57%"] },
+        { target: "2 3/10", correct: ["2.3", "230%"], traps: ["2.03", "23%", "0.23", "3.2", "203%"] },
+        { target: "2.9", correct: ["290%", "2 9/10"], traps: ["29%", "0.29", "2.09", "2 1/9", "2900%"] },
+        { target: "8.7", correct: ["870%", "87/10"], traps: ["87%", "0.87", "8.07", "8 1/7", "8700%"] },
+        { target: "60", correct: ["6000%", "60.0"], traps: ["60%", "0.6", "600%", "1/60", "6.0"] },
+        { target: "320%", correct: ["3.2", "16/5", "3 1/5"], traps: ["0.32", "3.02", "32/100", "32%"] },
+        { target: "4.05", correct: ["405%", "81/20"], traps: ["450%", "4.5%", "40.5", "4 1/5", "0.405"] },
+        { target: "3.9", correct: ["390%", "39/10"], traps: ["39%", "0.39", "3 1/9", "3.09", "0.039"] },
+        { target: "1 3/4", correct: ["1.75", "175%"], traps: ["1.34", "13.4%", "17.5%", "0.175", "7/40"] },
+        { target: "2 1/2", correct: ["2.5", "250%"], traps: ["0.25", "25%", "2.05", "2.12", "5/20"] },
+        { target: "110%", correct: ["1.1", "11/10"], traps: ["0.11", "1.01", "11%", "1.11", "1100%"] },
+        { target: "1 1/5", correct: ["1.2", "120%"], traps: ["1.15", "115%", "0.12", "12%", "6/50"] },
+        { target: "1 2/5", correct: ["1.4", "140%"], traps: ["1.25", "125%", "0.14", "14%", "7/50"] },
+        { target: "1 3/5", correct: ["1.6", "160%"], traps: ["1.35", "135%", "0.16", "16%", "8/50"] },
+        { target: "1 4/5", correct: ["1.8", "180%"], traps: ["1.45", "145%", "0.18", "18%", "9/50"] },
+        { target: "2 1/4", correct: ["2.25", "225%"], traps: ["2.14", "214%", "0.225", "22.5%", "9/40"] },
+        { target: "2 3/4", correct: ["2.75", "275%"], traps: ["2.34", "234%", "0.275", "27.5%", "11/40"] },
+        { target: "3 1/2", correct: ["3.5", "350%"], traps: ["3.12", "312%", "0.35", "35%", "7/20"] },
+        { target: "4 1/4", correct: ["4.25", "425%"], traps: ["4.14", "414%", "0.425", "42.5%", "17/40"] },
+        { target: "5 1/2", correct: ["5.5", "550%"], traps: ["5.12", "512%", "0.55", "55%", "11/20"] },
+        { target: "1/6", correct: ["約 0.167", "約 16.7%"], traps: ["0.16", "16%", "1.6", "6.1", "160%"] },
+        { target: "5/6", correct: ["約 0.833", "約 83.3%"], traps: ["0.83", "83%", "8.3", "5.6", "830%"] },
+        { target: "1/9", correct: ["約 0.111", "約 11.1%"], traps: ["0.11", "11%", "1.1", "9.1", "110%"] },
+        { target: "2/9", correct: ["約 0.222", "約 22.2%"], traps: ["0.22", "22%", "2.2", "9.2", "220%"] },
+        { target: "4/9", correct: ["約 0.444", "約 44.4%"], traps: ["0.44", "44%", "4.4", "9.4", "440%"] },
+        { target: "5/9", correct: ["約 0.556", "約 55.6%"], traps: ["0.55", "55%", "5.5", "9.5", "550%"] },
+        { target: "7/9", correct: ["約 0.778", "約 77.8%"], traps: ["0.77", "77%", "7.7", "9.7", "770%"] },
+        { target: "8/9", correct: ["約 0.889", "約 88.9%"], traps: ["0.88", "88%", "8.8", "9.8", "880%"] },
+        { target: "1.1", correct: ["110%", "1 1/10"], traps: ["11%", "0.11", "1.01", "1/11", "1100%"] },
+        { target: "6.2", correct: ["620%", "6 1/5"], traps: ["62%", "0.62", "6.02", "6/12", "6200%"] },
+        { target: "1.3", correct: ["130%", "1 3/10"], traps: ["13%", "0.13", "1.03", "1/13", "1300%"] },
+        { target: "1.4", correct: ["140%", "1 2/5"], traps: ["14%", "0.14", "1.04", "1/14", "1400%"] },
+        { target: "1.6", correct: ["160%", "1 3/5"], traps: ["16%", "0.16", "1.06", "1/16", "1600%"] },
+        { target: "9.7", correct: ["970%", "9 7/10"], traps: ["97%", "0.97", "9.07", "9/17", "9700%"] },
+        { target: "1.8", correct: ["180%", "1 4/5"], traps: ["18%", "0.18", "1.08", "1/18", "1800%"] },
+        { target: "1.9", correct: ["190%", "1 9/10"], traps: ["19%", "0.19", "1.09", "1/19", "1900%"] },
+        { target: "2.1", correct: ["210%", "2 1/10"], traps: ["21%", "0.21", "2.01", "2/10", "2100%"] },
+        { target: "2.2", correct: ["220%", "2 1/5"], traps: ["22%", "0.22", "2.02", "2/11", "2200%"] },
+        { target: "7.3", correct: ["730%", "7 3/10"], traps: ["73%", "0.73", "7.03", "7/13", "7300%"] },
+        { target: "2.6", correct: ["260%", "2 3/5"], traps: ["26%", "0.26", "2.06", "2/16", "2600%"] },
+        { target: "2.7", correct: ["270%", "2 7/10"], traps: ["27%", "0.27", "2.07", "2/17", "2700%"] },
+        { target: "2.8", correct: ["280%", "2 4/5"], traps: ["28%", "0.28", "2.08", "2/18", "2800%"] },
+        { target: "3.1", correct: ["310%", "3 1/10"], traps: ["31%", "0.31", "3.01", "3/10", "3100%"] },
+        { target: "3.3", correct: ["330%", "3 3/10"], traps: ["33%", "0.33", "3.03", "3/13", "3300%"] },
+        { target: "3.4", correct: ["340%", "3 2/5"], traps: ["34%", "0.34", "3.04", "3/14", "3400%"] },
+        { target: "3.5", correct: ["350%", "3 1/2"], traps: ["35%", "0.35", "3.05", "3/15", "3500%"] },
+        { target: "3.7", correct: ["370%", "3 7/10"], traps: ["37%", "0.37", "3.07", "3/17", "3700%"] },
+        { target: "4.5", correct: ["450%", "4 1/2"], traps: ["45%", "0.45", "4.05", "4/15", "4500%"] },
+        { target: "5.5", correct: ["550%", "5 1/2"], traps: ["55%", "0.55", "5.05", "5/15", "5500%"] },
+        { target: "12.5", correct: ["1250%", "12 1/2"], traps: ["125%", "1.25", "12.05", "1/8", "12500%"] },
+        { target: "2.5", correct: ["250%", "2 1/2"], traps: ["25%", "0.25", "2.05", "1/4", "2500%"] },
+        { target: "1.05", correct: ["105%", "1 1/20"], traps: ["15%", "0.15", "150%", "1.5", "10.5%"] },
+        { target: "2.04", correct: ["204%", "2 1/25"], traps: ["24%", "0.24", "240%", "2.4", "20.4%"] },
+        { target: "3.02", correct: ["302%", "3 1/50"], traps: ["32%", "0.32", "320%", "3.2", "30.2%"] },
+        { target: "4.08", correct: ["408%", "4 2/25"], traps: ["48%", "0.48", "480%", "4.8", "40.8%"] },
+        { target: "5.06", correct: ["506%", "5 3/50"], traps: ["56%", "0.56", "560%", "5.6", "50.6%"] },
+        { target: "150%", correct: ["1.5", "1 1/2"], traps: ["0.15", "15%", "15.0", "1/5", "1.05"] },
+        { target: "250%", correct: ["2.5", "2 1/2"], traps: ["0.25", "25%", "25.0", "2/5", "2.05"] },
+        { target: "350%", correct: ["3.5", "3 1/2"], traps: ["0.35", "35%", "35.0", "3/5", "3.05"] },
+        { target: "450%", correct: ["4.5", "4 1/2"], traps: ["0.45", "45%", "45.0", "4/5", "4.05"] },
+        { target: "125%", correct: ["1.25", "1 1/4"], traps: ["12.5%", "0.125", "1.2", "125", "5/40"] },
+        { target: "225%", correct: ["2.25", "2 1/4"], traps: ["22.5%", "0.225", "2.2", "225", "9/40"] },
+        { target: "175%", correct: ["1.75", "1 3/4"], traps: ["17.5%", "0.175", "1.7", "175", "7/40"] },
+        { target: "275%", correct: ["2.75", "2 3/4"], traps: ["27.5%", "0.275", "2.7", "275", "11/40"] },
+        { target: "1.2", correct: ["120%", "1 1/5"], traps: ["12%", "0.12", "1.02", "2.1", "1200%"] },
+        { target: "1.5", correct: ["150%", "1 1/2"], traps: ["15%", "0.15", "1.05", "5.1", "1500%"] },
+        { target: "2.4", correct: ["240%", "2 2/5"], traps: ["24%", "0.24", "2.04", "4.2", "2400%"] },
+        { target: "2.3", correct: ["230%", "2 3/10"], traps: ["23%", "0.23", "2.03", "3.2", "2300%"] },
+        { target: "3.2", correct: ["320%", "3 1/5"], traps: ["32%", "0.32", "3.02", "2.3", "3200%"] },
+        { target: "4.1", correct: ["410%", "4 1/10"], traps: ["41%", "0.41", "4.01", "1.4", "4100%"] },
+        { target: "0.125", correct: ["12.5%", "1/8"], traps: ["1.25%", "1.25", "125%", "1.8", "0.0125"] },
+        { target: "0.375", correct: ["37.5%", "3/8"], traps: ["3.75%", "3.75", "375%", "3.8", "0.0375"] },
+        { target: "0.625", correct: ["62.5%", "5/8"], traps: ["6.25%", "6.25", "625%", "5.8", "0.0625"] },
+        { target: "0.875", correct: ["87.5%", "7/8"], traps: ["8.75%", "8.75", "875%", "7.8", "0.0875"] },
+        { target: "4/7", correct: ["約 57.1%", "8/14"], traps: ["0.47", "4.7%", "7/4", "571%", "47%"] },
+        { target: "3/7", correct: ["約 42.9%", "6/14"], traps: ["0.34", "3.4%", "7/3", "429%", "34%"] },
+        { target: "1 5/8", correct: ["1.625", "162.5%"], traps: ["1.58", "158%", "16.25", "1.62", "5/8"] },
+        { target: "2 3/8", correct: ["2.375", "237.5%"], traps: ["2.38", "238%", "23.75", "2.37", "3/8"] },
+        { target: "1.125", correct: ["112.5%", "1 1/8"], traps: ["11.25%", "11.25", "1125%", "1.12", "0.1125"] },
+        { target: "2.625", correct: ["262.5%", "2 5/8"], traps: ["26.25%", "26.25", "2625%", "2.62", "0.2625"] },
+        { target: "4", correct: ["400%", "4.0"], traps: ["4%", "0.4", "40%", "1/4", "0.04"] },
+        { target: "5", correct: ["500%", "5.0"], traps: ["5%", "0.5", "50%", "1/5", "0.05"] },
+        { target: "10", correct: ["1000%", "10.0"], traps: ["10%", "1.0", "100%", "1/10", "0.1"] },
+        { target: "1.01", correct: ["101%", "1 1/100"], traps: ["10.1%", "0.101", "10.1", "11%", "1010%"] },
+        { target: "2.05", correct: ["205%", "2 1/20"], traps: ["25%", "0.25", "250%", "2.5", "20.5%"] },
+        { target: "3.04", correct: ["304%", "3 1/25"], traps: ["34%", "0.34", "340%", "3.4", "30.4%"] },
+        { target: "1 2/3", correct: ["約 1.667", "約 166.7%"], traps: ["1.6", "160%", "1.67", "16.67", "16%"] },
+        { target: "1 1/3", correct: ["約 1.333", "約 133.3%"], traps: ["1.3", "130%", "1.37", "13.67", "13%"] },
+        { target: "2 1/3", correct: ["約 2.333", "約 233.3%"], traps: ["2.3", "230%", "2.37", "23.67", "23%"] },
+        { target: "2 2/3", correct: ["約 2.667", "約 266.7%"], traps: ["2.6", "260%", "2.67", "26.67", "26%"] },
+        { target: "7/100", correct: ["7%", "0.07"], traps: ["70%", "0.7", "0.007", "0.7%", "700%"] },
+        { target: "9/100", correct: ["9%", "0.09"], traps: ["90%", "0.7", "0.009", "0.9%", "900%"] },
+        { target: "13/50", correct: ["26%", "0.26"], traps: ["2.6%", "0.026", "260%", "2.6", "1.3"] },
+        { target: "17/50", correct: ["34%", "0.34"], traps: ["3.4%", "0.034", "340%", "3.4", "1.7"] },
+        { target: "21/50", correct: ["42%", "0.42"], traps: ["4.2%", "0.042", "420%", "4.2", "2.1"] },
+        { target: "31/50", correct: ["62%", "0.62"], traps: ["6.2%", "0.062", "620%", "6.2", "3.1"] }
+      ];
+
+      // ========== 遊戲核心邏輯 ==========
+      let currentLevel=1, questionCount=1, maxQuestions=5, patienceTimeLimit=50, bonusTimeLimit=10;
+      let activeBank=[], currentQuestion=null, score=0, selectedValues=[], availableSlots=[];
+      let timeLeft=50, timerInterval=null, hintTimer=null;
+      let audioCtx=null;
+      let currentTrayItems=[];
+      let levelStartScore = 0;
+      let currentHintShown = false;
+
+      // AI 連續錯誤記錄 (用於主動教學，但此版本先保留架構，將來可擴充)
+      let mistakeStreak = { percent: 0, decimal: 0, fraction: 0 };
+
+      const pizzaSlots = [{left:'22%',top:'22%'},{left:'68%',top:'22%'},{left:'22%',top:'68%'},{left:'68%',top:'68%'},{left:'45%',top:'45%'},{left:'45%',top:'10%'},{left:'45%',top:'78%'}];
+
+      function getRank(s) { if(s>=1500) return "魔藥大師"; if(s>=1101) return "首席魔藥師"; if(s>=801) return "傑出煉金師"; if(s>=601) return "魔藥專精生"; if(s>=401) return "見習學生"; if(s>=201) return "魔藥新手"; return "麻瓜"; }
+      function updateRank() { document.getElementById('rank-title').innerText = getRank(score); }
+      
+      function getTargetType(targetStr) {
+        if(targetStr.includes('%')) return "百分數";
+        if(targetStr.includes('/')) return "分數";
+        return "小數";
+      }
+      
+      function generatePureHint(targetStr) {
+        if(targetStr.includes('%')) {
+          return "① 將%改寫成 ×1/100 （轉分數）\n② 小數點向左移2個位 （轉小數）";
+        } else if(!isNaN(parseFloat(targetStr)) && !targetStr.includes('/') && !targetStr.includes('%')) {
+          return "① 小數點向右移2個位，加% （轉百分數）\n② 把小數寫成分母是10、100或1000的分數 （轉分數）";
+        } else if(targetStr.includes('/')) {
+          return "① 分數 ×100% (轉百分數)\n② 分子 ÷ 分母 (轉小數)";
+        } else {
+          return "運用分數、百分數、小數互換規則。";
+        }
+      }
+      
+      function clearHintTimer() { if(hintTimer) { clearTimeout(hintTimer); hintTimer = null; } document.getElementById('hintBox').style.display = 'none'; currentHintShown = false; }
+      
+      function scheduleHint() {
+        clearHintTimer();
+        if(!currentQuestion) return;
+        let delaySec = (currentLevel === 1) ? 15 : (currentLevel === 2) ? 30 : 40;
+        hintTimer = setTimeout(() => {
+          if(document.getElementById('modal').style.display !== 'flex' && timerInterval) {
+            const hintMsg = generatePureHint(currentQuestion.target);
+            document.getElementById('hintText').innerHTML = hintMsg.replace(/\n/g,'<br>');
+            document.getElementById('hintBox').style.display = 'block';
+            currentHintShown = true;
+          }
+        }, delaySec * 1000);
+      }
+      
+      function resetPotion() {
+        document.querySelectorAll('#pizza-board .on-pizza').forEach(el => el.remove());
+        currentTrayItems.forEach(item => { if(item.ingredient) item.ingredient.classList.remove('hidden-ingredient'); });
+        selectedValues = [];
+        availableSlots = [0,1,2,3,4,5,6];
+      }
+      
+      function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = patienceTimeLimit;
+        const bar = document.getElementById('patience-bar');
+        bar.style.width = '100%';
+        bar.style.background = 'linear-gradient(90deg,#9b4dff,#cc77ff)';
+        timerInterval = setInterval(()=>{
+          if(timeLeft <= 0) { clearInterval(timerInterval); checkOrder(true); }
+          else { timeLeft -= 0.1; let p = (timeLeft/patienceTimeLimit)*100; bar.style.width = p+'%'; if(p<20) bar.style.background='linear-gradient(90deg,#b71c1c,#e53935)'; else if(p<50) bar.style.background='linear-gradient(90deg,#e65100,#ff9800)'; }
+        },100);
+      }
+      
+      function addMaterialToPizza(wrapper, ingredientDiv, value, idx) {
+        if(availableSlots.length===0) return false;
+        const slot = availableSlots.shift();
+        ingredientDiv.classList.add('hidden-ingredient');
+        const clone = ingredientDiv.cloneNode(true);
+        clone.classList.remove('hidden-ingredient');
+        clone.classList.add('on-pizza');
+        clone.style.position = 'absolute';
+        clone.style.left = `calc(${pizzaSlots[slot].left} - 36px)`;
+        clone.style.top = `calc(${pizzaSlots[slot].top} - 42px)`;
+        clone.style.width = '85px';
+        clone.dataset.originIdx = idx;
+        clone.dataset.slot = slot;
+        clone.onclick = (e) => { e.stopPropagation(); removeFromPizza(clone, wrapper, ingredientDiv, value, slot); };
+        document.getElementById('pizza-board').appendChild(clone);
+        selectedValues.push(value);
+        return true;
+      }
+      
+      function removeFromPizza(pizzaElem, wrapper, originalIng, value, slot) {
+        pizzaElem.remove();
+        originalIng.classList.remove('hidden-ingredient');
+        availableSlots.push(slot);
+        availableSlots.sort((a,b)=>a-b);
+        selectedValues = selectedValues.filter(v=>v!==value);
+      }
+      
+      function toggleIngredient(wrapper, ing, val, idx) {
+        if(ing.classList.contains('hidden-ingredient')) return;
+        addMaterialToPizza(wrapper, ing, val, idx);
+      }
+      
+      function initQuestion() {
+        clearHintTimer();
+        resetPotion();
+        if(!activeBank[questionCount-1]) { console.error("題庫不足"); alert("題庫錯誤，請重新開始"); return; }
+        document.getElementById('level-display').innerText = `第 ${questionCount}/${maxQuestions} 題`;
+        selectedValues = [];
+        availableSlots = [0,1,2,3,4,5,6];
+        document.getElementById('pizza-board').querySelectorAll('.on-pizza').forEach(e=>e.remove());
+        currentQuestion = activeBank[questionCount-1];
+        document.getElementById('target-display').innerText = currentQuestion.target;
+        let opts = [...currentQuestion.correct, ...currentQuestion.traps].sort(()=>Math.random()-0.5);
+        let emojis = ["🦇","🌿","💎","🍄","🐉","✨","🕯️","🌙","🔮","⚗️"].sort(()=>Math.random()-0.5);
+        const tray = document.getElementById('tray');
+        tray.innerHTML = '';
+        currentTrayItems = [];
+        opts.forEach((v,i)=>{
+          const wrapper = document.createElement('div');
+          wrapper.className = 'ingredient-wrapper';
+          const ing = document.createElement('div');
+          ing.className = 'ingredient';
+          ing.innerHTML = `<div class="emoji">${emojis[i%emojis.length]}</div><div class="val-label">${v}</div>`;
+          ing.dataset.value = v;
+          wrapper.appendChild(ing);
+          tray.appendChild(wrapper);
+          ing.onclick = (e) => { e.stopPropagation(); toggleIngredient(wrapper, ing, v, i); };
+          currentTrayItems.push({wrapper, ingredient: ing, value: v, idx:i});
+        });
+        startTimer();
+        scheduleHint();
+      }
+      
+      window.checkOrder = function(isTimeout) {
+        clearInterval(timerInterval);
+        clearHintTimer();
+        const timeSpent = patienceTimeLimit - timeLeft;
+        const correct=currentQuestion.correct;
+        let success=true;
+        if(isTimeout) success=false;
+        else if(selectedValues.length!==correct.length) success=false;
+        else selectedValues.forEach(v=>{ if(!correct.includes(v)) success=false; });
+        
+        let scoreChange = 0;
+        const modal=document.getElementById('modal'), msg=document.getElementById('modal-msg'), desc=document.getElementById('modal-desc'), box=document.getElementById('correct-ans-box'), bonusDiv=document.getElementById('bonus-desc');
+        bonusDiv.innerText='';
+        if(success){
+          let pts=50;
+          if((patienceTimeLimit - timeLeft) <= bonusTimeLimit){ pts+=5; bonusDiv.innerText='⚡閃電調配 +5⚡'; }
+          score+=pts; score=Math.max(0,score);
+          scoreChange = pts;
+          msg.innerText='🎉 魔藥完美煉成！'; msg.style.color='#2e7d32';
+          desc.innerText=`獲得 ${pts} 魔力值。`; box.style.display='none';
+        } else {
+          let penalty=selectedValues.length===0?30:20;
+          score-=penalty; score=Math.max(0,score);
+          scoreChange = -penalty;
+          msg.innerText=isTimeout?'⏰ 時間耗盡':'❌ 配方失誤';
+          msg.style.color='#b71c1c';
+          desc.innerText=(selectedValues.length===0?'未放入任何材料！':'材料組合錯誤。')+` 扣除 ${penalty} 分。`;
+          box.style.display='block'; box.innerText=`✅ 正確材料：${correct.join(' 和 ')}`;
+        }
+        document.getElementById('score').innerText=score; updateRank();
+        
+        // 傳送到 Google Sheets
+        logCurrentAttempt(success, scoreChange, timeSpent, currentHintShown);
+        
+        modal.style.display='flex';
+        document.getElementById('next-btn').innerText=(questionCount===maxQuestions)?(currentLevel===3?'完成試煉':'通關鑑定'):'下個配方';
+      };
+      
+      function restartCurrentLevel() {
+        document.getElementById('passwordModal').style.display = 'none';
+        score = levelStartScore;
+        document.getElementById('score').innerText = score;
+        updateRank();
+        questionCount = 1;
+        if(currentLevel === 1){
+          const shuffled = [...level1Bank].sort(()=>Math.random()-0.5);
+          activeBank = shuffled.slice(0,5);
+        } else if(currentLevel === 2){
+          const shuffled = [...level2Bank].sort(()=>Math.random()-0.5);
+          activeBank = shuffled.slice(0,10);
+        } else {
+          const shuffled = [...level3Bank].sort(()=>Math.random()-0.5);
+          activeBank = shuffled.slice(0,15);
+        }
+        initQuestion();
+      }
+      
+      function showPasswordModal(expectedPassword, nextLevel) {
+        const modal = document.getElementById('passwordModal');
+        document.getElementById('levelPassword').value = '';
+        document.getElementById('passwordError').style.display = 'none';
+        document.getElementById('passwordModalTitle').innerText = (nextLevel===2) ? '🔐 導師密碼鎖 (第一階)' : '🔐 導師密碼鎖 (第二階)';
+        document.getElementById('passwordDesc').innerHTML = '請向導師索取通關密語';
+        const submitBtn = document.getElementById('submitPasswordBtn');
+        const retryBtn = document.getElementById('retryLevelBtn');
+        const newSubmit = () => {
+          const inputVal = document.getElementById('levelPassword').value;
+          if(inputVal === expectedPassword) {
+            modal.style.display = 'none';
+            startGame(nextLevel);
+          } else {
+            document.getElementById('passwordError').style.display = 'block';
+          }
+        };
+        const newRetry = () => { restartCurrentLevel(); };
+        submitBtn.onclick = newSubmit;
+        retryBtn.onclick = newRetry;
+        document.getElementById('levelPassword').onkeypress = (e) => { if(e.key === 'Enter') newSubmit(); };
+        modal.style.display = 'flex';
+      }
+      
+      window.nextQuestion = function() {
+        document.getElementById('modal').style.display='none';
+        if(questionCount < maxQuestions){
+          questionCount++;
+          initQuestion();
+        } else {
+          if(currentLevel === 1) { showPasswordModal('1234', 2); }
+          else if(currentLevel === 2) { showPasswordModal('4321', 3); }
+          else {
+            alert(`🏆 偉大的魔藥大師！最終魔力值 ${score} 稱號：${getRank(score)} 🎉\n魔法學園永誌你的成就！`);
+            document.getElementById('start-screen').style.display='flex';
+          }
+        }
+      };
+      
+      function startGame(level) {
+        currentLevel = level;
+        questionCount = 1;
+        levelStartScore = score;
+        if(level===1){ 
+          maxQuestions=5; patienceTimeLimit=50; bonusTimeLimit=10; 
+          const shuffled=[...level1Bank].sort(()=>Math.random()-0.5); 
+          activeBank = shuffled.slice(0,5); 
+        } else if(level===2){ 
+          maxQuestions=10; patienceTimeLimit=60; bonusTimeLimit=10; 
+          const shuffled=[...level2Bank].sort(()=>Math.random()-0.5); 
+          activeBank = shuffled.slice(0,10); 
+        } else { 
+          maxQuestions=15; patienceTimeLimit=90; bonusTimeLimit=25; 
+          const shuffled=[...level3Bank].sort(()=>Math.random()-0.5); 
+          activeBank = shuffled.slice(0,15); 
+        }
+        document.getElementById('score').innerText=score; updateRank(); 
+        initQuestion();
+      }
+      
+      window.initFirstGame = function() {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        document.getElementById('start-screen').style.display='none';
+        // 👇 關鍵修改：開始遊戲前立刻要求輸入班別學號
+        getStudentId();
+        score = 0;
+        levelStartScore = 0;
+        document.getElementById('score').innerText = score;
+        updateRank();
+        startGame(1);
+      };
+      
+      document.getElementById('resetPotionBtn').addEventListener('click', () => resetPotion());
+      
+      function createStars() {
+        const starContainer = document.getElementById('starfield');
+        for(let i=0;i<120;i++){
+          let star = document.createElement('div');
+          star.classList.add('star');
+          let size = Math.random() * 4 + 2;
+          star.style.width = size+'px';
+          star.style.height = size+'px';
+          star.style.left = Math.random()*100+'%';
+          star.style.top = Math.random()*100+'%';
+          star.style.animationDelay = Math.random()*5+'s';
+          star.style.animationDuration = 2+Math.random()*4+'s';
+          starContainer.appendChild(star);
+        }
+      }
+      function createCandles() {
+        const candleContainer = document.getElementById('floatingCandles');
+        for(let i=0;i<8;i++){
+          let candle = document.createElement('div');
+          candle.classList.add('floating-candle');
+          let size = 35+Math.random()*20;
+          candle.style.width = size+'px';
+          candle.style.height = size+'px';
+          candle.style.left = (5 + Math.random()*90)+'%';
+          candle.style.bottom = (Math.random()*15)+'%';
+          candle.style.animationDelay = Math.random()*4+'s';
+          candle.style.animationDuration = 5+Math.random()*6+'s';
+          candle.innerHTML = `<div style="position:relative; width:100%; height:100%;"><div style="position:absolute; bottom:0; width:100%; height:60%; background:linear-gradient(180deg, #f9e6b0, #dc9a3e); border-radius: 4px 4px 12px 12px;"></div><div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:20%; height:18px; background:#ffb347; border-radius:50%; box-shadow:0 0 18px #ffbb66;"></div><div class="candle-glow"></div></div>`;
+          candleContainer.appendChild(candle);
+        }
+      }
+      createStars();
+      createCandles();
+    })();
+  </script>
+</body>
+</html>
